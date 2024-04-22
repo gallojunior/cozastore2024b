@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CozaStore.ViewModels;
+namespace Cozastore.ViewModels;
 
 public class LoginVM
 {

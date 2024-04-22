@@ -1,8 +1,7 @@
 using System.Net.Mail;
-using CozaStore.ViewModels;
+using Cozastore.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace Cozastore.Controllers;
 
@@ -42,8 +41,28 @@ public class AccountController : Controller
             string userName = login.Email;
             if (IsValidEmail(userName))
             {
-                
+                var user = await _userManager.FindByEmailAsync(userName);
+                if (user != null)
+                    userName = user.UserName;
             }
+
+            var result = await _signInManager.PasswordSignInAsync(
+                userName, login.Senha, login.Lembrar, lockoutOnFailure: true
+            );
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation($"Usuário {login.Email} acessou o sistema!");
+                return LocalRedirect(login.UrlRetorno);
+            }
+            
+            if (result.IsLockedOut)
+            {
+                _logger.LogWarning($"Usuário {login.Email} está bloqueado!");
+                ModelState.AddModelError(string.Empty, "Conta bloqueado! Aguarde alguns minutos para continuar!");
+            }
+
+            ModelState.AddModelError(string.Empty, "Usuário e/ou Senha Inválidos!!!");
         }
         return View(login);
     }
