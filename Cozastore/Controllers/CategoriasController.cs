@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Cozastore.Data;
 using Cozastore.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Cozastore.Controllers;
 
+[Authorize(Roles = "Administrador, Funcionário")]
 public class CategoriasController : Controller
 {
     private readonly AppDbContext _context;
@@ -59,23 +62,28 @@ public class CategoriasController : Controller
     {
         if (ModelState.IsValid)
         {
-            _context.Add(categoria);
-            await _context.SaveChangesAsync();
-            if (Foto != null)
+            if (!CategoriaExists(categoria))
             {
-                string fileName = categoria.Id + Path.GetExtension(Foto.FileName);
-                string upload = Path.Combine(_host.WebRootPath, "img\\categorias");
-                string newFile = Path.Combine(upload, fileName);
-                using (var stream = new FileStream(newFile, FileMode.Create))
-                {
-                    Foto.CopyTo(stream);
-                }
-                categoria.Foto = "\\img\\categorias\\" + fileName;
+                _context.Add(categoria);
                 await _context.SaveChangesAsync();
+                if (Foto != null)
+                {
+                    string fileName = categoria.Id + Path.GetExtension(Foto.FileName);
+                    string upload = Path.Combine(_host.WebRootPath, "img\\categorias");
+                    string newFile = Path.Combine(upload, fileName);
+                    using (var stream = new FileStream(newFile, FileMode.Create))
+                    {
+                        Foto.CopyTo(stream);
+                    }
+                    categoria.Foto = "\\img\\categorias\\" + fileName;
+                    await _context.SaveChangesAsync();
+                }
+                TempData["Success"] = $"A Categoria '{categoria.Nome}' foi adicionado com sucesso";
+                return RedirectToAction(nameof(Index));
             }
-
-            return RedirectToAction(nameof(Index));
-        }
+            else
+                ModelState.AddModelError(string.Empty, "Nome já cadastrado!!");
+        }        
         ViewData["CategoriaPaiId"] = new SelectList(_context.Categorias, "Id", "Nome", categoria.CategoriaPaiId);
         return View(categoria);
     }
@@ -131,7 +139,7 @@ public class CategoriasController : Controller
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!CategoriaExists(categoria.Id))
+                if (!CategoriaExists(categoria))
                 {
                     return NotFound();
                 }
@@ -180,9 +188,12 @@ public class CategoriasController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private bool CategoriaExists(int id)
+    private bool CategoriaExists(Categoria categoria)
     {
-        return _context.Categorias.Any(e => e.Id == id);
+        if (categoria.Id == 0)
+            return _context.Categorias.Any(e => e.Nome == categoria.Nome);
+        else
+            return _context.Categorias.Any(e => e.Id == categoria.Id);
     }
 }
 

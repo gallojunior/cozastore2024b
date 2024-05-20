@@ -1,0 +1,102 @@
+@* @model IEnumerable<Cozastore.Models.Produto> *@
+@{
+    ViewData["Title"] = "Produtos";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="row">
+    <div class="col mx-auto">
+        <div class="card my-4">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                <div
+                    class="bg-gradient-warning shadow-primary border-radius-lg py-4 d-flex justify-content-between align-items-center">
+                    <h5 class="text-white text-capitalize m-0 ps-3">@ViewData["Title"]</h5>
+                    <a class="text-white text-capitalize ps-3 align-items-center d-flex me-4" asp-action="Create">
+                        <i class="material-icons opacity-10 me-2">add</i> Adicionar
+                    </a>
+                </div>
+            </div>
+            <div class="card-body pb-2">
+                <div class="table-responsive p-0">
+                    <table id='DataTable' class="table table-striped align-items-center mb-0 w-100">
+                        <thead>
+                            <tr>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                    Nome
+                                </th>
+                                <th
+                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 text-start">
+                                    Categoria
+                                </th>
+                                <th
+                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 text-start">
+                                    Preço
+                                </th>
+                                <th
+                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 text-start">
+                                    Preço com Desconto
+                                </th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                    Ações</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let datatable = new DataTable('#DataTable', {
+            ajax: {
+                url: "/Produtos/GetProdutos",
+                type: "get",
+                datatype: "json"
+            },
+            columns: [
+                { data: "nome", width: "40%" },
+                { data: "categoria.nome", width: "30%" }, 
+                { data: "preco", width: "15%", render: $.fn.dataTable.render.number('.', ',', 2) },
+                { data: "precoDesconto", width: "15%", render: $.fn.dataTable.render.number('.', ',', 2) },
+                {
+                    data: "id", width: "15%", bSortable: false,
+                    render: function (data) {
+                        return `
+                            <div class="align-middle text-center">
+                                <a href="/Produtos/Edit/${data}" title="Alterar">
+                                    <i class="material-icons">edit</i>
+                                </a>
+                                <a href="/Produtos/Details/${data}" title="Detalhes">
+                                    <i class="material-icons">search</i>
+                                </a>
+                                <a href="/Produtos/Delete/${data}" title="Excluir">
+                                    <i class="material-icons">delete</i>
+                                </a>
+                            </div>
+                        `
+                    }
+                }
+            ],
+            columnDefs: [
+                {
+                    targets: '_all',
+                    className: 'text-dark text-sm text-start'
+                }
+            ],
+            language: {
+                url: '../../lib/datatables/pt-BR.json'
+            },
+            initComplete: function (settings, json) {
+                document.querySelector('.dt-length').classList.add('text-xs');
+                document.querySelector('.dt-search').classList.add('text-xs');
+                document.querySelector('.dt-info').classList.add('text-xs');
+                document.querySelector('.dt-paging').classList.add('text-xs');
+                document.querySelector('label[for="dt-length-0"]').classList.add('text-xs');
+                document.querySelector('label[for="dt-search-0"]').classList.add('text-xs');
+            }
+        });
+    </script>
+}

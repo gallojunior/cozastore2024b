@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Cozastore.Data;
 using Cozastore.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Cozastore.Controllers
 {
+    [Authorize(Roles = "Administrador, Funcionário")]
     public class CoresController : Controller
     {
         private readonly AppDbContext _context;
